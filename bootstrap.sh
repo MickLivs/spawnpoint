@@ -18,6 +18,7 @@ if ! command -v brew &>/dev/null; then
   # Add brew to PATH for Apple Silicon
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
+    # shellcheck disable=SC2016  # single quotes intentional: $() must expand at shell startup, not now
     echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
   fi
 fi
@@ -37,7 +38,14 @@ fi
 # 5. Sprites CLI
 if ! command -v sprite &>/dev/null; then
   echo "Installing Sprites CLI..."
-  curl https://sprites.dev/install.sh | bash
+  curl -fsSL https://sprites.dev/install.sh | bash
+  # The Sprites CLI installs to ~/.local/bin which is not in macOS's default PATH.
+  # Add it to ~/.zprofile so it persists across terminal sessions.
+  if ! grep -q 'local/bin' ~/.zprofile 2>/dev/null; then
+    # shellcheck disable=SC2016  # single quotes intentional: $HOME must expand at shell startup, not now
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
+  fi
+  export PATH="$HOME/.local/bin:$PATH"
 fi
 
 echo ""
